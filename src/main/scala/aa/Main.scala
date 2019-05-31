@@ -34,7 +34,7 @@ object Main {
         ctx.collect(("0", -1, Long.MinValue))
         while (true) {
           Thread.sleep(10000L)
-          ctx.collect(("0", -1, DateTime.now.getMillis))
+        //  ctx.collect(("0", -1, DateTime.now.getMillis))
         }
       }
       override def cancel(): Unit = {}
@@ -53,14 +53,18 @@ object Main {
       .addSource(new SourceFunction[(String, Long, Long)] {
         override def run(ctx: SourceFunction.SourceContext[(String, Long, Long)]): Unit = {
           var count: Long = 0
-          while (true) {
-            val time = DateTime.now.getMillis
+          //while (true) {
+          val time = DateTime.now.getMillis
+          for (i <- 0 to 1000000000) {
+            //val time = DateTime.now.getMillis
+            Console.println(count)
             ctx.collect(("0", count, time))
             ctx.collect(("1", count, time))
             Thread.sleep(100L)
             count += 1
           }
         }
+
         override def cancel(): Unit = {}
       })
       .connect(oldStream)
@@ -70,7 +74,7 @@ object Main {
       })
     val newTable = tEnv.fromDataStream(newStream, 'key, 'count, 'time.rowtime)
 
-
+    // about 12 time pointed are delayed about 12 time points
     val joinedTable = newTable
       .joinLateral("spec(time)", "key = p_key")
 
